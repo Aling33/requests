@@ -1145,6 +1145,23 @@ class TestRequests:
         assert b'name="stuff"' in prep.body
         assert b"name=\"b'stuff'\"" not in prep.body
 
+    @pytest.mark.parametrize(
+        ("data", "files", "expected_name"),
+        (
+            ({1: "value"}, {"file": b"content"}, b'name="1"'),
+            ({}, {1: b"content"}, b'name="1"; filename="1"'),
+        ),
+    )
+    def test_non_string_multipart_fieldnames(self, data, files, expected_name):
+        prep = requests.Request(
+            method="POST",
+            url="http://example.com",
+            data=data,
+            files=files,
+        ).prepare()
+
+        assert expected_name in prep.body
+
     def test_unicode_method_name(self, httpbin):
         with open(__file__, "rb") as f:
             files = {"file": f}

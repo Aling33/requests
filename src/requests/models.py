@@ -213,12 +213,13 @@ class RequestEncodingMixin:
                         (
                             field.decode("utf-8")
                             if isinstance(field, bytes)
-                            else field,
+                            else str(field),
                             v.encode("utf-8") if isinstance(v, str) else v,
                         )
                     )
 
         for k, v in files:
+            field_name = k.decode("utf-8") if isinstance(k, bytes) else str(k)
             # support for explicit filename
             ft = None
             fh = None
@@ -230,7 +231,7 @@ class RequestEncodingMixin:
                 else:
                     fn, fp, ft, fh = v
             else:
-                fn = guess_filename(v) or k
+                fn = guess_filename(v) or field_name
                 fp = v
 
             if isinstance(fp, (str, bytes, bytearray)):
@@ -242,7 +243,7 @@ class RequestEncodingMixin:
             else:
                 fdata = fp
 
-            rf = RequestField(name=k, data=fdata, filename=fn, headers=fh)
+            rf = RequestField(name=field_name, data=fdata, filename=fn, headers=fh)
             rf.make_multipart(content_type=ft)
             new_fields.append(rf)
 
